@@ -1,45 +1,122 @@
-# MagiClaw App
+# 👋 Welcome to the official documentation of MagiClaw
 
-[![Swift](https://img.shields.io/badge/Swift-5.7-orange.svg)](https://swift.org) ![iOS](https://img.shields.io/badge/iOS-17.0%2B-blue.svg) 
+MagiClaw is a versatile system designed for **universal action embodiment** in robotics, combining multi-modal sensing, teleoperation, and imitation learning capabilities. This documentation covers two key components of the MagiClaw project:
 
-A SwiftUI-based iOS application designed for collecting various types of data using ARKit and external sensors. This app allows for recording RGB video, LiDAR depth data, and 4x4 transform matrices from the iPhone's sensor. Additionally, it interfaces with a Raspberry Pi via WebSocket to capture many other types data in real-time.
+1. **MagiClaw App**: An iOS application for real-time data collection, including RGB video, LiDAR depth, and more.
+2. **pymagiclaw API**: A Python-based API for teleoperating the Franka robotic arm and MagiClaw gripper.
 
-## Features
+---
+
+## MagiClaw App ![iOS](https://img.shields.io/badge/iOS-17.0%2B-blue.svg)
+
+The MagiClaw App is a SwiftUI-based iOS application designed for collecting, recording, and streaming various types of data from iPhone and external sensors.
+
+<p align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://magiclaw-docs.vercel.app/_next/image?url=%2Fmagiclaw-app.png&w=640&q=75" alt="MagiClaw App" width="200"/>
+      </td>
+      <td align="center">
+        <a href="https://apps.apple.com/us/app/magiclaw/id6661033548?itscg=30200&itsct=apps_box_badge&mttnsubad=6661033548">
+          <img 
+            src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1726876800" 
+            alt="Download on the App Store" 
+            width="180" />
+        </a>
+      </td>
+    </tr>
+  </table>
+</p>
+
+### ✅ System Requirements
+
+- iOS 17 or later.
+
+### 📌 Supported Devices
+
+- iPhone 8 or newer.
+- For depth data recording, devices with LiDAR are required (e.g., iPhone 12 Pro or later).
+
+### 🎯 Features
 
 - **RGB Video Recording**: Capture RGB videos from the iPhone's rear camera.
 - **LiDAR Depth Data**: Record depth data using the iPhone's LiDAR sensor, if available. Depth frames are saved in `.bin` format.
 - **Transform Matrix Collection**: Store 4x4 homogeneous transform matrices that represent the device's pose during recording.
 - **WebSocket Integration**: Connect to a Raspberry Pi on the same local network to receive and record force and angle data from external sensors.
-- **Data Export**: Save all collected data to the iOS "Files" app upon stopping the recording, including:
-  - `AngleData.csv`: Captures angle data received from the Raspberry Pi.
-  - `ForceData.csv`: Captures force data received from the Raspberry Pi.
-  - `PoseData.csv`: Stores the transform matrices collected from the iPhone.
-  - `yyyyMMdd_HHmmss_RGB.mp4`: A video file of the recorded RGB frames.
-  - `yyyyMMdd_HHmmss_Depth/`: A directory containing depth data frames in `.bin` format.
+- **Data Export**: Save all collected data to the iOS "Files" app upon stopping the recording.
 
-## Usage
+### 💾 Data Recording and Storage
 
-1. **Start Recording**:
-   - Launch the app on your iPhone.
-   - Ensure the Raspberry Pi is online and transmitting data.
-   - Press the "Start Recording" button in the app to begin capturing data.
+#### Connecting to the Raspberry Pi
 
-2. **Stop Recording**:
-   - Press the button to end the session.
-   - The app will automatically save all recorded data to the "Files" app in a dedicated folder.
+1. Ensure both your iPhone and Raspberry Pi are connected to the same Wi-Fi network.
+2. Go to the app’s “Settings” page and set your Raspberry Pi’s IP address or hostname.
 
-3. **Access Recorded Data**:
-   - Open the "Files" app on your iPhone.
-   - Navigate to the app's folder to find the CSV files (`AngleData.csv`, `ForceData.csv`, `PoseData.csv`), the RGB video (`yyyyMMdd_HHmmss_RGB.mp4`), and the depth data (`yyyyMMdd_HHmmss_Depth/` folder).
+   - To find your Raspberry Pi's IP address, run `ifconfig` in your Raspberry Pi's terminal.
+   - Run `hostname` to find its hostname.
 
-## Requirements
+#### Recording Data
 
-- iOS 17.0 or later
-- An iPhone with a LiDAR sensor (for depth data recording)
-- A configured Raspberry Pi with WebSocket capability
-- Xcode 15.0 or later
+1. Navigate to the "Panel" page and tap “Record”.
+2. Confirm that the Raspberry Pi connection status is “Connected.”
+3. Choose the appropriate task scenario and provide a description.
+4. Press “Start recording” to begin capturing data. Press the button again to stop.
 
-## Contact
+#### Viewing and Sharing Data
 
-For any inquiries or issues, please contact [mr.wutianyu@gmail.com](mailto:mr.wutianyu@gmail.com).
+You can access saved data by navigating to the “MagiClaw” folder in the iPhone’s “Files” app.
+
+#### File Formats
+
+| File Name             | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| **`metadata.json`**   | Stores metadata of the recorded session.          |
+| **`AngleData.csv`**   | Encoder angle values.                             |
+| **`R_ForceData.csv`** | 6D force data from the **right** gripper (N, Nm). |
+| **`L_ForceData.csv`** | 6D force data from the **left** gripper (N, Nm).  |
+| **`PoseData.csv`**    | 6D iPhone pose (4x4 transformation matrix).       |
+| **`RGB.mp4`**         | 640×480 rear camera video.                        |
+| **`Depth/*.bin`**     | 256×192 depth data, UInt format (10⁻⁴m).          |
+| **`Audio.m4a`**       | AAC audio (12kHz, mono).                          |
+
+#### Timestamp
+
+- The first column of each CSV file represents the elapsed time (s).  
+- Depth file timestamps are included in filenames.
+
+### 📡 Real-time Data Streaming
+
+#### Starting Data Streaming
+
+1. In the **Panel** tab, select “Remote”.
+2. Press **Enable sending data** to start transmitting real-time sensor data via WebSocket. Data includes the iPhone's 6D pose and RGB video.
+
+#### Receiving Data
+
+To receive data from another device, follow these steps:
+
+- Find the iPhone’s IP address in the app’s “Settings” page.
+- On the receiving end, create a WebSocket client and connect to: `ws://<IP-address>:8080`.
+
+
+
+## 🛠️ `pymagiclaw` API [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+
+
+
+The `pymagiclaw` API is a Python library designed to control the Franka Emika robotic arm and the MagiClaw gripper. It provides a simple interface for impedance-based motion control, allowing users to specify absolute or relative positions for the robot's end-effector. Additionally, it supports real-time control of the MagiClaw gripper, enabling precise manipulation tasks.
+
+#### Installation
+
+```bash
+pip install pymagiclaw
+```
+
+- **Franka Arm Control**: 
+  - **Impedance-based Motion**: Control the Franka Emika Panda arm using impedance control for compliant manipulation.
+  - **Absolute/Relative Positioning**: Specify target positions in absolute Cartesian coordinates (`x, y, z`) or relative offsets (`Δx, Δy, Δz`).
+- **MagClaw Gripper Control**:
+  - Open/close the gripper with programmable width.
+- **Sensor Integration**: Seamlessly combine robot control with MagiClaw's multi-modal sensing (force, LiDAR, RGB, pose matrix).
 
